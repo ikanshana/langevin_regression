@@ -1,0 +1,19 @@
+\begin{thebibliography}{1}
+
+\bibitem{Shalev2014}
+Shai Shalev-Shwartz and Shai Ben-David.
+\newblock {\em Understanding machine learning: From theory to algorithms}.
+\newblock Cambridge university press, 2014.
+
+\bibitem{Callaham2021nonlinear}
+Jared~L Callaham, J-C Loiseau, Georgios Rigas, and Steven~L Brunton.
+\newblock Nonlinear stochastic modelling with langevin regression.
+\newblock {\em Proceedings of the Royal Society A}, 477(2250):20210092, 2021.
+
+\bibitem{Moler2003}
+Cleve Moler and Charles Van~Loan.
+\newblock Nineteen dubious ways to compute the exponential of a matrix,
+  twenty-five years later.
+\newblock {\em SIAM review}, 45(1):3--49, 2003.
+
+\end{thebibliography}
