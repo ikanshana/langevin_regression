@@ -3,7 +3,7 @@ import sympy as sym
 import copy
 import time as t
 import itertools as it
-from openpiv import validation, filters
+#from openpiv import validation, filters
 
 
 def arg_sorted(X, reverse):
