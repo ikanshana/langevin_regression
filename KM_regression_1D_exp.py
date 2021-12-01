@@ -7,9 +7,6 @@ from numpy.linalg import lstsq
 import sympy as sym
 import time as t
 
-sys.path.append(os.path.abspath(
-    "/home/administrateur/Documents/lmfl_data/Programmes/python_codes/langevin-regression"))
-
 import utils_reg as utils
 import fpsolve_reg as fpsolve
 import functions_regression as fr
@@ -116,7 +113,7 @@ print(Xi0)
 #Compute empirical PDF
 W = np.ones((len(powers), N_bins))
 #Initialise adjoint solver
-afp = fpsolve.AdjFP(np.array((X_values)), ndim=1, solve='diff', dt=dt)
+afp = fpsolve.AdjFP(np.array((X_values)), ndim=1, solve='exp', dt=dt)
 
 #Initialise forward steady-state solver
 dx = np.array((Edges_X[1] - Edges_X[0]))
@@ -135,8 +132,6 @@ def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 
 Xi, V = utils.SSR_loop(opt_fun_local, params)
 
+#def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 
-def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
-
-
-Xi, V = utils.SSR_loop(opt_fun_local, params)
+#Xi, V = utils.SSR_loop(opt_fun_local, params)
