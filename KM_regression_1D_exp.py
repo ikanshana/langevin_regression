@@ -35,7 +35,7 @@ delta_t = 0.25
 bw = 1e-6  # Band width for kernels
 
 powers = np.array([[1], [2]])
-Coeffs_poly = [8, 12]
+Coeffs_poly = [8, 8]
 
 dt = delta_t/1e4
 
@@ -131,8 +131,8 @@ def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 
 Xi, V = utils.SSR_loop(opt_fun_local, params)
 
-np.save("weights_1.25_f8_a12_degree/Xi_1D_exp", Xi)
-np.save("weights_1.25_f8_a12_degree/V_1D_exp", V)
+np.save("weights_1.25_diff_const_term/Xi_1D_exp", Xi)
+np.save("weights_1.25_diff_const_term/V_1D_exp", V)
 
 #def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 #Xi, V = utils.SSR_loop(opt_fun_local, params)

@@ -37,13 +37,15 @@ powers = np.array([[1], [2]])
 Coeffs_poly = [4, 5]
 
 #same dt as f = 4
-dt = delta_t/400
-
+#dt = delta_t/400
+dt = delta_t/1e4
 save_load = "/home/administrateur/Documents/lmfl_data/Regression_results/save_step.nc"
 checkpoint_load = False
 
 ### Load data ###
-Ym_tot = np.load('/home/administrateur/Documents/lmfl_data/Time_distributions_jet_2.4_twisted/Y_m_straight.npy')
+#Y_m_straight.npy  Y_m_tilted1-z.npy  Y_m_tilted1+z.npy  Y_m_tilted2-z.npy  Y_m_tilted2+z.npy
+suffix = 'straight'
+Ym_tot = np.load('/workdir/indra.kanshana/2bar_project/data/Time_distributions_2.4_twisted/Y_m_'+ suffix + '.npy')
 Ym_tot = np.expand_dims(Ym_tot, axis=1)
 
 print(Ym_tot.shape)
@@ -127,8 +129,8 @@ def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 
 Xi, V = utils.SSR_loop(opt_fun_local, params)
 
-#np.save("weights_2.4_twisted/Xi_1D_exp", Xi)
-#np.save("weights_2.4_twisted/V_1D_exp", V)
+np.save("weights_2.4_twisted_diff_const_term/Xi_1D_exp_" + suffix, Xi)
+np.save("weights_2.4_twisted_diff_const_term/V_1D_exp_" + suffix, V)
 
 #def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 #Xi, V = utils.SSR_loop(opt_fun_local, params)
