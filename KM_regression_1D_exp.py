@@ -16,10 +16,10 @@ from kramersmoyal import km, kernels
 
 ### Parameters ###
 type_method = 'tip'
-type_file = "1.25"
+type_file = "2.4"
 
 N_start = 1
-N_end = 9
+N_end = 10
 N_run = N_end - N_start + 1
 
 dimt = 2000
@@ -35,7 +35,7 @@ delta_t = 0.25
 bw = 1e-6  # Band width for kernels
 
 powers = np.array([[1], [2]])
-Coeffs_poly = [8, 8]
+Coeffs_poly = [5, 4]
 
 dt = delta_t/1e4
 
@@ -120,7 +120,7 @@ dx = np.array((Edges_X[1] - Edges_X[0]))
 fp = fpsolve.SteadyFP(N_bins, dx)
 
 #Optimisation parameters
-params = {"W": W, "KMc": KMc, "Xi0": Xi0, "N": N_bins, "p_hist": p_hist,
+params = {"W": W, "KMc": KMc_reg, "Xi0": Xi0, "N": N_bins, "p_hist": p_hist,
           "kl_reg": 10, "Nbr_iter_max": 1e5, "track": 0,
           "fp": fp, "afp": afp, "tau": stride*delta_t, "radial": False,
           "print_cost": True, "checkpoint_file": save_load,
@@ -129,10 +129,12 @@ params = {"W": W, "KMc": KMc, "Xi0": Xi0, "N": N_bins, "p_hist": p_hist,
 
 def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 
+
 Xi, V = utils.SSR_loop(opt_fun_local, params)
 
-np.save("weights_1.25_diff_const_term/Xi_1D_exp", Xi)
-np.save("weights_1.25_diff_const_term/V_1D_exp", V)
+np.save("weights/Xi_1D_exp", Xi)
+np.save("weights/V_1D_exp", V)
 
 #def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
+
 #Xi, V = utils.SSR_loop(opt_fun_local, params)

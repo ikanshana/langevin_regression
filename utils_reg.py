@@ -249,7 +249,6 @@ def SSR_loop(opt_fun, params):
     Xi0 = params['Xi0'].copy()
     Max_it = len(KMc.powers)  # Max of remaining terms in polynomes at the end
 
-    diff_const_idx = KMc.get_sizes()[0]  #Get index of constant term of diffusion
     m = len(Xi0)  # Number of fit coefficients
 
     Xi = np.zeros((m, m - Max_it+1))  # Output results
@@ -287,17 +286,17 @@ def SSR_loop(opt_fun, params):
             params['KMc'] = KMc_j
             params['Xi0'] = Xi0[tmp_active]
 
-            # Ensure that there is at least one drift and diffusion term left and constant term is not removed from the diffusion
-            #if not (np.any(sizes == 0)):
-            if not (np.any(sizes == 0)) and j != (np.where(active == diff_const_idx)[0][0]) :
+            # Ensure that there is at least one drift and diffusion term left
+            if not (np.any(sizes == 0)):
                 tmp_Xi, tmp_V = opt_fun(params)[0:2]  # Optimise !
+
                 # Keep minimum cost
                 if tmp_V < V[k]:
                     min_idx = j
                     V[k] = tmp_V
                     min_Xi = tmp_Xi
 
-        active = np.delete(active, min_idx)  # Remove inactive index	
+        active = np.delete(active, min_idx)  # Remove inactive index
         Xi0[active] = min_Xi  # Re-initialize with best results from previous
         Xi[active, k] = min_Xi
 
