@@ -111,8 +111,8 @@ class SteadyFP:
         Solve Fokker-Planck equation from input drift coefficients
         """
         self.precompute_operator(f, a)
-        q_hat = np.linalg.lstsq(self.A[1:, 1:], -self.A[1:, 0], rcond=1e-6)[0]
-        # q_hat = np.linalg.inv(self.A[1:, 1:]).dot(-self.A[1:, 0])
+        # q_hat = np.linalg.lstsq(self.A[1:, 1:], -self.A[1:, 0], rcond=1e-6)[0]
+        q_hat = np.linalg.inv(self.A[1:, 1:]).dot(-self.A[1:, 0])
         q_hat = np.append([1], q_hat)
         return np.real(ifftn(np.reshape(q_hat, self.N)))/np.prod(self.dx)
 
