@@ -35,86 +35,15 @@ class SteadyFP:
         N - array of ndim ints: grid resolution N[0] x N[1] x ... x N[ndim-1]
         dx - grid spacing (array of floats)
         """
-
-        if isinstance(N, int):
-            self.ndim = 1
-        else:
-            self.ndim = len(N)
-
         self.N = N
         self.dx = dx
-
-        # Set up indexing matrices for ndim=1, 2
-        if self.ndim == 1:
-            self.k = 2*np.pi*fftfreq(N, dx)
-            self.idx = np.zeros((self.N, self.N), dtype=np.int32)
-            for i in range(self.N):
-                self.idx[i, :] = i-np.arange(N)
-
-        elif self.ndim == 2:
-            # Fourier frequencies
-            self.k = [2*np.pi*fftfreq(N[i], dx[i]) for i in range(self.ndim)]
-            self.idx = np.zeros(
-                (2, self.N[0], self.N[1], self.N[0], self.N[1]), dtype=np.int32)
-
-            for m in range(N[0]):
-                for n in range(N[1]):
-                    self.idx[0, m, n, :, :] = m - \
-                        np.tile(np.arange(N[0]), [N[1], 1]).T
-                    self.idx[1, m, n, :, :] = n - \
-                        np.tile(np.arange(N[1]), [N[0], 1])
-
-        else:
-            print("WARNING: NOT IMPLEMENTED FOR HIGHER DIMENSIONS")
-
-        self.A = None  # Need to initialize with precompute_operator
-
-    def precompute_operator(self, f, a):
-        """
-        f - array of drift coefficients on domain (ndim x N[0] x N[1] x ... x N[ndim])
-        a - array of diffusion coefficients on domain (ndim x N[0] x N[1] x ... x N[ndim])
-        NOTE: To generalize to covariate noise, would need to add a dimension to a
-        """
-
-        if self.ndim == 1:
-            f_hat = self.dx*fftn(f)
-            a_hat = self.dx*fftn(a)
-
-            # Set up spectral projection operator
-            self.A = np.einsum('i,ij->ij', -1j*self.k, f_hat[self.idx]) \
-                + np.einsum('i,ij->ij', -self.k**2, a_hat[self.idx])
-
-        if self.ndim == 2:
-            # Initialize Fourier transformed coefficients
-            f_hat = np.zeros(
-                np.append([self.ndim], self.N), dtype=np.complex64)
-            N_a = self.ndim*(self.ndim + 1)//2
-            a_hat = np.zeros(np.append([N_a], self.N), dtype=np.complex64)
-
-            for i in range(self.ndim):
-                f_hat[i] = np.prod(self.dx)*fftn(f[i])
-
-            for i in range(N_a):
-                a_hat[i] = np.prod(self.dx)*fftn(a[i])
-
-            self.A = -1j*np.einsum('i,ijkl->ijkl', self.k[0], f_hat[0, self.idx[0], self.idx[1]]) \
-                     - 1j*np.einsum('j,ijkl->ijkl', self.k[1], f_hat[1, self.idx[0], self.idx[1]]) \
-                     - np.einsum('i,ijkl->ijkl', self.k[0]**2, a_hat[0, self.idx[0], self.idx[1]]) \
-                     - np.einsum('j,ijkl->ijkl', self.k[1]**2, a_hat[2, self.idx[0], self.idx[1]]) \
-                     - np.einsum('i,j,ijkl->ijkl', 2
-                                 * self.k[0], self.k[1], a_hat[1, self.idx[0], self.idx[1]])
-
-            self.A = np.reshape(self.A, (np.prod(self.N), np.prod(self.N)))
 
     def solve(self, f, a):
         """
         Solve Fokker-Planck equation from input drift coefficients
         """
-        self.precompute_operator(f, a)
-        # q_hat = np.linalg.lstsq(self.A[1:, 1:], -self.A[1:, 0], rcond=1e-6)[0]
-        q_hat = np.linalg.inv(self.A[1:, 1:]).dot(-self.A[1:, 0])
-        q_hat = np.append([1], q_hat)
-        return np.real(ifftn(np.reshape(q_hat, self.N)))/np.prod(self.dx)
+        p_est = (np.exp(np.cumsum((f[0]/a[0])*self.dx)))/a[0]
+        return p_est/(np.sum(p_est)*self.dx)
 
 
 class AdjFP:
