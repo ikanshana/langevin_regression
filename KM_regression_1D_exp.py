@@ -24,7 +24,7 @@ N_run = N_end - N_start + 1
 
 dimt = 2000
 
-path = "/workdir/indra.kanshana/2bar_project/data/Time_distributions_" + \
+path = "/home/administrateur/Documents/lmfl_data/Time_distributions_" + \
     type_method + "_" + type_file + "/"
 
 N_bins = 32  # KM bins
@@ -117,13 +117,13 @@ afp = fpsolve.AdjFP(np.array((X_values)), ndim=1, solve='exp', dt=dt)
 
 #Initialise forward steady-state solver
 dx = np.array((Edges_X[1] - Edges_X[0]))
-fp = fpsolve.SteadyFP(N_bins, dx)
+fp = fpsolve.SteadyFP_reflectBC(N_bins, dx)
 
 #Optimisation parameters
 params = {"W": W, "KMc": KMc, "Xi0": Xi0, "N": N_bins, "p_hist": p_hist,
-          "kl_reg": 10, "Nbr_iter_max": 1e5, "track": 0,
+          "kl_reg": 0, "Nbr_iter_max": 1e2, "track": 0,
           "fp": fp, "afp": afp, "tau": stride*delta_t, "radial": False,
-          "print_cost": True, "checkpoint_file": save_load,
+          "print_cost": True, "checkpoint_file": save_load,"Loss_parts" : True,
           "checkpoint_load": checkpoint_load}
 
 

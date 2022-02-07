@@ -224,6 +224,13 @@ def AFP_opt(cost, params):
         print('Number of iterations : '
               + str(res.nfev) + '/' + str(int(Nbr_iter_max)))
 
+    if params["print_cost"] and params["Loss_parts"] :
+        print('%%%% Optimization time: {0} seconds,   Cost: {1},   Cost from f, a and KL: {2} %%%%'.format(
+            time() - start_time, res.fun, cost_parts(res.x, params)))
+        print(res.message)
+        print('Number of iterations : '
+              + str(res.nfev) + '/' + str(int(Nbr_iter_max)))
+
     # Return coefficients and cost function
     if np.any(is_complex):
         # Return to complex number
@@ -535,6 +542,81 @@ def cost_reg(Xi, params):
         V += params['kl_reg']*kl
 
     return V
+
+
+
+
+def cost_parts(Xi, params):
+    """
+    Parts of the total cost - drift, diffusion and KL divergence,
+    Xi - current coefficient estimates
+    param - inputs to optimization problem: grid points, list of candidate expressions, regularizations
+        W, KMc, x_pts, y_pts, x_msh, y_msh, f_expr, a_expr, l1_reg, l2_reg, kl_reg, p_hist, etc
+    """
+    ### Unpack parameters ###
+    W = params['W']  # Optimization weights
+    track = params['track']  # Track number of optimisation iterations
+
+
+    # Kramers-Moyal coefficients
+    KMc = fr.KM_list(KM_copy=params['KMc'])
+
+    powers = KMc.powers
+    ndims = len(powers[0])
+
+    fp, afp = params['fp'], params['afp']  # Fokker-Planck solvers
+    N = params['N']
+
+    ### Get all KM coefficients fit values ###
+    f_vals = KMc.get_drift_fun(Xi=Xi)
+    g_vals = KMc.get_diff_fun(Xi=Xi)
+
+    ### Convert to FP ###
+    if ndims == 1:
+        a_vals = fr.FP_diff_1D(np.array(g_vals))[0]
+    if ndims == 2:
+        a_vals = fr.FP_diff_2D(np.array(g_vals))[0]
+
+    ### FP regression ###
+    # Solve AFP equation to find finite-time corrected drift/diffusion
+    #    corresponding to the current parameters Xi
+    afp.precompute_operator(np.squeeze(f_vals), np.squeeze(a_vals))
+
+    if params.get("mod_multi") == "diff":
+        f_tau, a_tau = afp.solve(params['tau'], Nbr_proc=params["Nbr_proc"])
+    else:
+        f_tau, a_tau = afp.solve(params['tau'])
+
+    KM_tau = np.concatenate((f_tau, a_tau))  # Concatenate results
+
+    # Histogram points without data have NaN values in K-M average - ignore
+    # these in the average
+    mask = np.nonzero(np.isfinite(KMc.get_exp_value(0)))[0]
+    V = 0
+
+    KM_exp = np.concatenate((KMc.get_drift(), KMc.get_diff()))
+
+    # loss contribution from drift and diffusion
+    f_loss = np.sum(W[0, mask]*(KM_tau[0][mask]
+                - KM_exp[0, mask])**2)
+    a_loss = np.sum(W[1, mask]*(KM_tau[1][mask]
+                - KM_exp[1, mask])**2)
+
+    # Include PDF constraint via Kullbeck-Leibler divergence regularization
+    p_hist = params['p_hist']  # Empirical PDF
+    dims_f = [ndims] + [N]*ndims  # Reconstruct dims
+    dims_a = [ndims*(ndims+1)//2] + [N]*ndims
+    f_vals = np.reshape(f_vals, dims_f)
+    a_vals = np.reshape(a_vals, dims_a)
+
+    # Solve Fokker-Planck equation for steady-state PDF
+    p_est = fp.solve(np.squeeze(f_vals), np.squeeze(a_vals))
+
+    kl = kl_divergence(p_hist, p_est, dx=fp.dx, tol=1e-6)
+    # Numerical integration can occasionally produce small negative values
+    kl = max(0, kl)
+
+    return f_loss, a_loss, kl
 
 
 # 1D Markov test
