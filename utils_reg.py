@@ -521,9 +521,18 @@ def cost_reg(Xi, params):
 
     KM_exp = np.concatenate((KMc.get_drift(), KMc.get_diff()))
 
-    for k in range(len(powers)):  # Compute cost
-        V += np.sum(W[k, mask]*(KM_tau[k][mask]
-                    - KM_exp[k, mask])**2)
+#    for k in range(len(powers)):  # Compute cost
+#        V += np.sum(W[k, mask]*(KM_tau[k][mask]
+#                    - KM_exp[k, mask])**2)
+
+
+    V += np.sum(W[0, mask]*(KM_tau[0][mask]
+                    - KM_exp[0, mask])**2)
+
+
+    V += np.sum(params["w_g"]*(W[1, mask]*(KM_tau[1][mask]
+                    - KM_exp[1, mask]))**2)
+
 
     # Include PDF constraint via Kullbeck-Leibler divergence regularization
     if params['kl_reg'] > 0:
