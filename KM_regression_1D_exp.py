@@ -24,7 +24,7 @@ N_run = N_end - N_start + 1
 
 dimt = 2000
 
-path = "/home/administrateur/Documents/lmfl_data/Time_distributions_" + \
+path = "/workdir/indra.kanshana/2bar_project/data/Time_distributions_" + \
     type_method + "_" + type_file + "/"
 
 N_bins = 32  # KM bins
@@ -131,8 +131,8 @@ def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 
 Xi, V = utils.SSR_loop(opt_fun_local, params)
 
-np.save("weights_test/Xi_1D_exp", Xi)
-np.save("weights_test//V_1D_exp", V)
+np.save("weighted_diff_loss_with_KL/Xi_1D_exp", Xi)
+np.save("weighted_diff_loss_with_KL/V_1D_exp", V)
 
 #def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 #Xi, V = utils.SSR_loop(opt_fun_local, params)
