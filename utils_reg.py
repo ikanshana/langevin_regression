@@ -282,6 +282,17 @@ def SSR_loop(opt_fun, params):
         for j in range(len(active)):
             tmp_active = active.copy()
             tmp_active = np.delete(tmp_active, j)  # Try deleting this term
+            print(f_active)
+            print(s_active)
+
+            print(f_expr[f_active], s_expr[s_active])
+            params['f_expr'] = f_expr[f_active]
+            params['s_expr'] = s_expr[s_active]
+            params['lib_f'] = lib_f[:, f_active]
+            params['lib_s'] = lib_s[:, s_active]
+            params['Xi0'] = Xi0[tmp_active]
+
+
 
             KMc_j = fr.KM_list(KM_copy=KMc)
 
