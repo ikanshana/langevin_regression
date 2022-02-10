@@ -140,8 +140,22 @@ class SteadyFP_reflectBC:
         """
         Solve Fokker-Planck equation from input drift coefficients
         """
-        p_est = (np.exp(np.cumsum((f/a)*self.dx)))/a
-        return p_est/(np.sum(p_est)*self.dx)
+        with warnings.catch_warnings(record=True) as w:
+            p_est = (np.exp(np.cumsum((f/a)*self.dx)))/a
+            if len(w) > 0:
+                print('Some warning, printing f and a:',f,a)
+
+        with warnings.catch_warnings(record=True) as w:
+            p_est = p_est/(np.sum(p_est)*self.dx)
+            if len(w) > 0:
+                print('Some warning, print p_est ', p_est)
+                print('Some warning, print f ', f)
+                print('Some warning, print a ', a)
+
+        return p_est
+
+
+
 
 
 class AdjFP:

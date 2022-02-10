@@ -217,16 +217,14 @@ def AFP_opt(cost, params):
     res = minimize(opt_fun, Xi0, method='Nelder-Mead',
                    options={'disp': False, 'maxfev': int(Nbr_iter_max)})
 
-    if params["print_cost"]:
-        print('%%%% Optimization time: {0} seconds,   Cost: {1} %%%%'.format(
-            time() - start_time, res.fun))
-        print(res.message)
-        print('Number of iterations : '
-              + str(res.nfev) + '/' + str(int(Nbr_iter_max)))
 
-    if params["print_cost"] and params["Loss_parts"] :
-        print('%%%% Optimization time: {0} seconds,   Cost: {1},   Cost from f, a and KL: {2} %%%%'.format(
+    if params["print_cost"] :
+        if params["Loss_parts"]:
+            print('%%%% Optimization time: {0} seconds,   Cost: {1}, Cost from f, a and KL: {2} %%%%'.format(
             time() - start_time, res.fun, cost_parts(res.x, params)))
+        else :
+            print('%%%% Optimization time: {0} seconds,   Cost: {1} %%%%'.format(
+                time() - start_time, res.fun))
         print(res.message)
         print('Number of iterations : '
               + str(res.nfev) + '/' + str(int(Nbr_iter_max)))
