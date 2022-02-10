@@ -17,7 +17,7 @@ import time as t
 from multiprocessing import Pool
 from functools import partial
 from functions_regression import arg_sorted
-
+import warnings
 
 class SteadyFP:
     """

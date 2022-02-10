@@ -15,7 +15,7 @@ import copy
 import multiprocessing as mp
 import time as t
 import netCDF4 as nc
-import warnings
+
 # Return a single expression from a list of expressions and coefficients
 #   Note this will give a SymPy expression and not a function
 
