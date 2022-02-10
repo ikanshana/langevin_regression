@@ -539,8 +539,8 @@ def cost_reg(Xi, params):
                     - KM_exp[0, mask])**2)
 
 
-    V += np.sum(params["w_g"]*(W[1, mask]*(KM_tau[1][mask]
-                    - KM_exp[1, mask]))**2)
+    V += np.sum((params["w_g"]*(W[1, mask]*(KM_tau[1][mask]
+                    - KM_exp[1, mask])))**2)
 
 
     # Include PDF constraint via Kullbeck-Leibler divergence regularization
