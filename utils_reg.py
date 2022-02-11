@@ -254,6 +254,7 @@ def SSR_loop(opt_fun, params):
     Xi0 = params['Xi0'].copy()
     Max_it = len(KMc.powers)  # Max of remaining terms in polynomes at the end
 
+    f_expr, s_expr = KMc.KM_coeffs[0].fit_fun.copy(), KMc.KM_coeffs[1].fit_fun.copy()
     m = len(Xi0)  # Number of fit coefficients
 
     Xi = np.zeros((m, m - Max_it+1))  # Output results
@@ -289,12 +290,6 @@ def SSR_loop(opt_fun, params):
             print(s_active)
 
             print(f_expr[f_active], s_expr[s_active])
-            params['f_expr'] = f_expr[f_active]
-            params['s_expr'] = s_expr[s_active]
-            params['lib_f'] = lib_f[:, f_active]
-            params['lib_s'] = lib_s[:, s_active]
-            params['Xi0'] = Xi0[tmp_active]
-
 
 
             KMc_j = fr.KM_list(KM_copy=KMc)
