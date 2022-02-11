@@ -155,8 +155,79 @@ class SteadyFP_reflectBC:
         return p_est
 
 
+class SteadyFP_simulation:
+    """
+    Solver object for steady-state Fokker-Planck equation
 
+    Initializing this independently avoids having to re-initialize all of the indexing arrays
+      for repeated loops with different drift and diffusion
 
+    Jared Callaham (2020)
+    """
+
+    def __init__(self, N, dx, X, dt,bins):
+        """
+        ndim - number of dimensions
+        N - array of ndim ints: grid resolution N[0] x N[1] x ... x N[ndim-1]
+        X - grid points where f and a are computed
+        dt - time step in simulation of langevin dynamics
+        """
+        self.N = N
+        self.dx = dx
+        self.X = X
+        self.dt = dt
+        self.T = 5000
+        self.bins = bins
+
+    def solve(self, f, a):
+        """
+        Solve Fokker-Planck equation from input drift coefficients
+        """
+        #parameters for random number generator
+        mu, std, seed = 0.0, 1.0, 123
+        np.random.seed(seed)
+
+        #initial condition
+        y0 = np.random.choice(self.X[:,0])
+
+        #Number of time steps
+        L = int(self.T/self.dt)
+
+        y = np.empty(L, dtype=type(y0))
+        t = np.empty(L, dtype=type(self.dt))
+        y[0] = y0
+        t[0] = 0
+
+        f_a = f
+        g_a = np.sqrt(a*2)
+
+        X_temp = self.X
+
+        for i in range(L-1):
+
+            #set to boundary values if out of range, else use linear interpolation
+            if y[i] > X_temp[-1,0] :
+                y_index = -1
+                f = f_a[y_index]
+                g = g_a[y_index]
+
+            elif y[i] < X_temp[0,0] :
+                y_index = 0
+                f = f_a[y_index]
+                g = g_a[y_index]
+
+            else:
+                y_index = np.where(y[i] > X_temp[:,0])[0][-1]
+                f = ((f_a[y_index]) + (f_a[y_index+1]))/2
+                g = (g_a[y_index] + g_a[y_index+1])/2
+
+            dw = np.sqrt(self.dt)*np.random.normal(mu, std, 1)
+            y[i+1] = y[i] + f*self.dt + g*dw
+            t[i+1] = t[i] + self.dt
+
+        p_est = np.histogramdd(y, bins=self.bins, density=True)[0]
+
+        return p_est
 
 class AdjFP:
     """

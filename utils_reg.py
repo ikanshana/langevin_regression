@@ -282,6 +282,9 @@ def SSR_loop(opt_fun, params):
         for j in range(len(active)):
             tmp_active = active.copy()
             tmp_active = np.delete(tmp_active, j)  # Try deleting this term
+            f_active = tmp_active[tmp_active < len(f_expr)]
+            s_active = tmp_active[tmp_active >= len(f_expr)] - len(f_expr)
+
             print(f_active)
             print(s_active)
 

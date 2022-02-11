@@ -24,7 +24,10 @@ N_run = N_end - N_start + 1
 
 dimt = 2000
 
-path = "/workdir/indra.kanshana/2bar_project/data/Time_distributions_" + \
+#path = "/workdir/indra.kanshana/2bar_project/data/Time_distributions_" + \
+#    type_method + "_" + type_file + "/"
+
+path = "/home/administrateur/Documents/lmfl_data/Time_distributions_" + \
     type_method + "_" + type_file + "/"
 
 N_bins = 32  # KM bins
@@ -117,11 +120,12 @@ afp = fpsolve.AdjFP(np.array((X_values)), ndim=1, solve='exp', dt=dt)
 
 #Initialise forward steady-state solver
 dx = np.array((Edges_X[1] - Edges_X[0]))
-fp = fpsolve.SteadyFP_reflectBC(N_bins, dx)
+#fp = fpsolve.SteadyFP_reflectBC(N_bins, dx)
+fp = fpsolve.SteadyFP_simulation(N_bins, dx, X_values, 0.01,bins)
 
 #Optimisation parameters
 params = {"W": W, "KMc": KMc, "Xi0": Xi0, "N": N_bins, "p_hist": p_hist,
-          "kl_reg": 0, "w_g": 1e2,  "Nbr_iter_max": 1e5, "track": 0,
+          "kl_reg": 10, "w_g": 1e2,  "Nbr_iter_max": 1e5, "track": 0,
           "fp": fp, "afp": afp, "tau": stride*delta_t, "radial": False,
           "print_cost": True, "checkpoint_file": save_load,"Loss_parts" : True,
           "checkpoint_load": checkpoint_load}
@@ -131,8 +135,8 @@ def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 
 Xi, V = utils.SSR_loop(opt_fun_local, params)
 
-np.save("weighted_diff_loss_with_KL/Xi_1D_exp", Xi)
-np.save("weighted_diff_loss_with_KL/V_1D_exp", V)
+np.save("weights_test/Xi_1D_exp", Xi)
+np.save("weights_test/V_1D_exp", V)
 
 #def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 #Xi, V = utils.SSR_loop(opt_fun_local, params)
