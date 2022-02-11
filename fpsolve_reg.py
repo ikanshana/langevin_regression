@@ -176,7 +176,7 @@ class SteadyFP_simulation:
         self.dx = dx
         self.X = X
         self.dt = dt
-        self.T = 5000
+        self.T = 500
         self.bins = bins
 
     def solve(self, f, a):
