@@ -18,7 +18,7 @@ import netCDF4 as nc
 
 # Return a single expression from a list of expressions and coefficients
 #   Note this will give a SymPy expression and not a function
-
+max_kl = 0.0
 
 def sindy_model(Xi, expr_list):
     return sum([Xi[i]*expr_list[i] for i in range(len(expr_list))])
@@ -286,8 +286,8 @@ def SSR_loop(opt_fun, params):
             f_active = tmp_active[tmp_active < len(f_expr)]
             s_active = tmp_active[tmp_active >= len(f_expr)] - len(f_expr)
 
-            print(f_active)
-            print(s_active)
+            #print(f_active)
+            #print(s_active)
 
             print(f_expr[f_active], s_expr[s_active])
 
@@ -482,6 +482,8 @@ def cost_reg(Xi, params):
         W, KMc, x_pts, y_pts, x_msh, y_msh, f_expr, a_expr, l1_reg, l2_reg, kl_reg, p_hist, etc
     """
     ### Unpack parameters ###
+    global max_kl
+
     W = params['W']  # Optimization weights
     track = params['track']  # Track number of optimisation iterations
     Nbr_iter_max = params['Nbr_iter_max']
@@ -552,8 +554,18 @@ def cost_reg(Xi, params):
         # Solve Fokker-Planck equation for steady-state PDF
         p_est = fp.solve(np.squeeze(f_vals), np.squeeze(a_vals))
 
-        kl = kl_divergence(p_hist, p_est, dx=fp.dx, tol=1e-6)
+        if np.any(np.isnan(p_est)):
+            kl = max_kl
+        else :
+            kl = kl_divergence(p_hist, p_est, dx=fp.dx, tol=1e-6)
+
+            if kl > max_kl:
+                max_kl = kl
+
+            if kl < 0:
+                print("Kl was negative")
         # Numerical integration can occasionally produce small negative values
+        
         kl = max(0, kl)
         V += params['kl_reg']*kl
 

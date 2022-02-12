@@ -135,8 +135,8 @@ def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 
 Xi, V = utils.SSR_loop(opt_fun_local, params)
 
-np.save("weights_test/Xi_1D_exp", Xi)
-np.save("weights_test/V_1D_exp", V)
+np.save("weighted_diff_loss_with_KL_constrain/Xi_1D_exp", Xi)
+np.save("weighted_diff_loss_with_KL_constrain/V_1D_exp", V)
 
 #def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 #Xi, V = utils.SSR_loop(opt_fun_local, params)

@@ -143,14 +143,14 @@ class SteadyFP_reflectBC:
         with warnings.catch_warnings(record=True) as w:
             p_est = (np.exp(np.cumsum((f/a)*self.dx)))/a
             if len(w) > 0:
-                print('Some warning, printing f and a:',f,a)
+                #print('Some warning, printing f and a:',f,a)
 
         with warnings.catch_warnings(record=True) as w:
             p_est = p_est/(np.sum(p_est)*self.dx)
             if len(w) > 0:
-                print('Some warning, print p_est ', p_est)
-                print('Some warning, print f ', f)
-                print('Some warning, print a ', a)
+                #print('Some warning, print p_est ', p_est)
+                #print('Some warning, print f ', f)
+                #print('Some warning, print a ', a)
 
         return p_est
 
@@ -169,8 +169,10 @@ class SteadyFP_simulation:
         """
         ndim - number of dimensions
         N - array of ndim ints: grid resolution N[0] x N[1] x ... x N[ndim-1]
+        dx - grid spacing (array of floats)
         X - grid points where f and a are computed
-        dt - time step in simulation of langevin dynamics
+        dt - time step to be used in langevin simulation
+        bins - bins of histogram
         """
         self.N = N
         self.dx = dx
