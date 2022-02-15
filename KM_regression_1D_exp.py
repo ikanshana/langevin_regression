@@ -120,8 +120,8 @@ afp = fpsolve.AdjFP(np.array((X_values)), ndim=1, solve='exp', dt=dt)
 
 #Initialise forward steady-state solver
 dx = np.array((Edges_X[1] - Edges_X[0]))
-#fp = fpsolve.SteadyFP_reflectBC(N_bins, dx)
-fp = fpsolve.SteadyFP_simulation(N_bins, dx, X_values, 0.001,bins)
+fp = fpsolve.SteadyFP_reflectBC(N_bins, dx)
+#fp = fpsolve.SteadyFP_simulation(N_bins, dx, X_values, 0.001,bins)
 
 #Optimisation parameters
 params = {"W": W, "KMc": KMc, "Xi0": Xi0, "N": N_bins, "p_hist": p_hist,
