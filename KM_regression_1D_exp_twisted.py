@@ -34,7 +34,7 @@ delta_t = 0.01
 bw = 1e-6  # Band width for kernels
 
 powers = np.array([[1], [2]])
-Coeffs_poly = [4, 5]
+Coeffs_poly = [5, 4]
 
 #same dt as f = 4
 #dt = delta_t/400
@@ -115,13 +115,13 @@ afp = fpsolve.AdjFP(np.array((X_values)), ndim=1, solve='exp', dt=dt)
 
 #Initialise forward steady-state solver
 dx = np.array((Edges_X[1] - Edges_X[0]))
-fp = fpsolve.SteadyFP(N_bins, dx)
-
+#fp = fpsolve.SteadyFP(N_bins, dx)
+fp = fpsolve.SteadyFP_reflectBC(N_bins, dx)
 #Optimisation parameters
 params = {"W": W, "KMc": KMc, "Xi0": Xi0, "N": N_bins, "p_hist": p_hist,
-          "kl_reg": 10, "Nbr_iter_max": 1e5, "track": 0,
+          "kl_reg": 1, "Nbr_iter_max": 1e5, "track": 0,
           "fp": fp, "afp": afp, "tau": stride*delta_t, "radial": False,
-          "print_cost": True, "checkpoint_file": save_load,
+          "print_cost": True, "checkpoint_file": save_load, "Loss_parts" : True,
           "checkpoint_load": checkpoint_load}
 
 
@@ -129,8 +129,8 @@ def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 
 Xi, V = utils.SSR_loop(opt_fun_local, params)
 
-np.save("weights_2.4_twisted_diff_const_term/Xi_1D_exp_" + suffix, Xi)
-np.save("weights_2.4_twisted_diff_const_term/V_1D_exp_" + suffix, V)
+np.save("weighted_diff_loss_with_KL_W1_constrain_2.4_twisted/Xi_1D_exp_" + suffix, Xi)
+np.save("weighted_diff_loss_with_KL_W1_constrain_2.4_twisted/V_1D_exp_" + suffix, V)
 
 #def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 #Xi, V = utils.SSR_loop(opt_fun_local, params)
