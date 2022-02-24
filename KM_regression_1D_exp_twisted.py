@@ -15,14 +15,6 @@ import netCDF4 as nc
 from kramersmoyal import km, kernels
 
 ### Parameters ###
-#type_method = 'tip'
-#type_file = "1.25"
-
-#N_start = 1
-#N_end = 9
-#N_run = N_end - N_start + 1
-
-#dimt = 1550
 
 #path = "/home/administrateur/Documents/lmfl_data/Time_distributions_jet_2.4_twisted"
 
@@ -44,7 +36,7 @@ checkpoint_load = False
 
 ### Load data ###
 #Y_m_straight.npy  Y_m_tilted1-z.npy  Y_m_tilted1+z.npy  Y_m_tilted2-z.npy  Y_m_tilted2+z.npy
-suffix = 'straight'
+suffix = 'tilted2+z'
 Ym_tot = np.load('/workdir/indra.kanshana/2bar_project/data/Time_distributions_2.4_twisted/Y_m_'+ suffix + '.npy')
 Ym_tot = np.expand_dims(Ym_tot, axis=1)
 
