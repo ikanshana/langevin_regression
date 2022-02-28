@@ -125,7 +125,7 @@ fp = fpsolve.SteadyFP_reflectBC(N_bins, dx)
 
 #Optimisation parameters
 params = {"W": W, "KMc": KMc, "Xi0": Xi0, "N": N_bins, "p_hist": p_hist,
-          "kl_reg": 1,  "Nbr_iter_max": 1e5, "track": 0,
+          "kl_reg": 5,  "Nbr_iter_max": 1e5, "track": 0,
           "fp": fp, "afp": afp, "tau": stride*delta_t, "radial": False,
           "print_cost": True, "checkpoint_file": save_load,"Loss_parts" : True,
           "checkpoint_load": checkpoint_load}
