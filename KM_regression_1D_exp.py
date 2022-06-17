@@ -125,7 +125,7 @@ fp = fpsolve.SteadyFP_reflectBC(N_bins, dx)
 
 #Optimisation parameters
 params = {"W": W, "KMc": KMc, "Xi0": Xi0, "N": N_bins, "p_hist": p_hist,
-          "kl_reg": 5,  "Nbr_iter_max": 1e5, "track": 0,
+          "kl_reg": 1,  "Nbr_iter_max": 1e5, "track": 0,
           "fp": fp, "afp": afp, "tau": stride*delta_t, "radial": False,
           "print_cost": True, "checkpoint_file": save_load,"Loss_parts" : True,
           "checkpoint_load": checkpoint_load}
@@ -135,8 +135,8 @@ def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 
 Xi, V = utils.SSR_loop(opt_fun_local, params)
 
-np.save("weighted_diff_loss_with_KL_W5_constrain_2.4/Xi_1D_exp", Xi)
-np.save("weighted_diff_loss_with_KL_W5_constrain_2.4/V_1D_exp", V)
+np.save("pdf_weighted_diff_loss_with_KL_W1_constrain_2.4/Xi_1D_exp", Xi)
+np.save("pdf_weighted_diff_loss_with_KL_W1_constrain_2.4/V_1D_exp", V)
 
 #def opt_fun_local(params): return utils.AFP_opt(utils.cost_reg, params)
 #Xi, V = utils.SSR_loop(opt_fun_local, params)

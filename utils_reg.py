@@ -535,12 +535,10 @@ def cost_reg(Xi, params):
 #                    - KM_exp[k, mask])**2)
 
 
-    V += np.sum(W[0, mask]*((KM_tau[0][mask]
-                    - KM_exp[0, mask])/np.linalg.norm(KM_exp[0, mask]))**2)
+    V += np.sum(W[0, mask]*params['p_hist']*((KM_tau[0][mask] - KM_exp[0, mask])/np.linalg.norm(KM_exp[0, mask]))**2)
 
 
-    V += np.sum(W[1, mask]*((KM_tau[1][mask]
-                    - KM_exp[1, mask])/np.linalg.norm(KM_exp[1, mask]))**2)
+    V += np.sum(W[1, mask]*params['p_hist']*((KM_tau[1][mask] - KM_exp[1, mask])/np.linalg.norm(KM_exp[1, mask]))**2)
 
 
     # Include PDF constraint via Kullbeck-Leibler divergence regularization
@@ -734,5 +732,4 @@ def autocorr_func_1d(x, norm=True):
     if norm:
         acf /= acf[0]
 
-    return acf
     return acf
