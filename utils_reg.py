@@ -15,10 +15,15 @@ import copy
 import multiprocessing as mp
 import time as t
 import netCDF4 as nc
+import warnings
+
 
 # Return a single expression from a list of expressions and coefficients
 #   Note this will give a SymPy expression and not a function
 max_kl = 0.0
+max_fa_loss = 0.0
+flag_KL = False
+flag_fa = False
 
 def sindy_model(Xi, expr_list):
     return sum([Xi[i]*expr_list[i] for i in range(len(expr_list))])
@@ -39,7 +44,15 @@ def kl_divergence(p_in, q_in, dx=1, tol=None):
         tol = max(min(p_in.flatten()), min(q_in.flatten()))
     q = q_in.copy()
     p = p_in.copy()
-    q[q < tol] = tol
+
+
+    with warnings.catch_warnings(record=True) as w:
+        q[q < tol] = tol
+        if len(w) > 0:
+            print("print for warning in KL \n q : ", q, "tol: ", tol )
+            if np.any(np.isnan(q)):
+                print("np.isnan detects correctly")		
+
     p[p < tol] = tol
     return ntrapz(p*np.log(p/q), dx)
 
@@ -198,6 +211,11 @@ def AFP_opt(cost, params):
     Called in main program. Other optimisation algorithms can be chosen from
     Scipy library : Powell, Nelder-mead, differential-evolution...
     """
+
+    global max_kl, flag_KL, flag_fa
+    flag_KL = False
+    flag_fa = False
+
     start_time = time()
     Xi0 = params["Xi0"]
     Nbr_iter_max = params.get("Nbr_iter_max")
@@ -228,7 +246,12 @@ def AFP_opt(cost, params):
         print(res.message)
         print('Number of iterations : '
               + str(res.nfev) + '/' + str(int(Nbr_iter_max)))
+        if flag_KL == True :
+            print('KL exploded for this combination')
 
+        if flag_fa == True :
+            print('drift or diffusion exploded in adjoint solver')
+  
     # Return coefficients and cost function
     if np.any(is_complex):
         # Return to complex number
@@ -430,6 +453,8 @@ def SSR_process(q_in, q_out, opt_fun, params):
     *q_in : Queue only for putting work to do (not shared with other processes)
     *q_out : Queue only for putting results or progress (shared with other processes)
     """
+
+
     for active_proc, KMc, active, Xi0, proc_nbr in iter(q_in.get, 'END'):
         V = np.inf
         min_idx = -1
@@ -482,7 +507,7 @@ def cost_reg(Xi, params):
         W, KMc, x_pts, y_pts, x_msh, y_msh, f_expr, a_expr, l1_reg, l2_reg, kl_reg, p_hist, etc
     """
     ### Unpack parameters ###
-    global max_kl
+    global max_kl, flag_KL, flag_fa, max_fa_loss
 
     W = params['W']  # Optimization weights
     track = params['track']  # Track number of optimisation iterations
@@ -535,11 +560,19 @@ def cost_reg(Xi, params):
 #                    - KM_exp[k, mask])**2)
 
 
-    V += np.sum(W[0, mask]*params['p_hist']*((KM_tau[0][mask] - KM_exp[0, mask])/np.linalg.norm(KM_exp[0, mask]))**2)
+    with warnings.catch_warnings(record=True) as w:
+        V += np.sum(W[0, mask]*((KM_tau[0][mask] - KM_exp[0, mask])/np.linalg.norm(KM_exp[0, mask]))**2)
 
+        V += np.sum(W[1, mask]*((KM_tau[1][mask] - KM_exp[1, mask])/np.linalg.norm(KM_exp[1, mask]))**2)
 
-    V += np.sum(W[1, mask]*params['p_hist']*((KM_tau[1][mask] - KM_exp[1, mask])/np.linalg.norm(KM_exp[1, mask]))**2)
-
+        if len(w) > 0:
+            #print("print for warning in drift loss \n KM_tau_0 : ", KM_tau[0][mask], KM_tau[1][mask] )
+            V = max_fa_loss
+            flag_fa = True
+		
+        else:
+            if V > max_fa_loss:
+                max_fa_loss = V
 
     # Include PDF constraint via Kullbeck-Leibler divergence regularization
     if params['kl_reg'] > 0:
@@ -551,9 +584,10 @@ def cost_reg(Xi, params):
 
         # Solve Fokker-Planck equation for steady-state PDF
         p_est = fp.solve(np.squeeze(f_vals), np.squeeze(a_vals))
-
+    
         if np.any(np.isnan(p_est)):
             kl = max_kl
+            flag_KL = True
         else :
             kl = kl_divergence(p_hist, p_est, dx=fp.dx, tol=1e-6)
 
@@ -579,6 +613,10 @@ def cost_parts(Xi, params):
     param - inputs to optimization problem: grid points, list of candidate expressions, regularizations
         W, KMc, x_pts, y_pts, x_msh, y_msh, f_expr, a_expr, l1_reg, l2_reg, kl_reg, p_hist, etc
     """
+
+    global max_kl, max_fa_loss
+
+
     ### Unpack parameters ###
     W = params['W']  # Optimization weights
     track = params['track']  # Track number of optimisation iterations
@@ -623,10 +661,23 @@ def cost_parts(Xi, params):
     KM_exp = np.concatenate((KMc.get_drift(), KMc.get_diff()))
 
     # loss contribution from drift and diffusion
-    f_loss = np.sum(W[0, mask]*(KM_tau[0][mask]
-                - KM_exp[0, mask])**2)
-    a_loss = np.sum(W[1, mask]*(KM_tau[1][mask]
-                - KM_exp[1, mask])**2)
+ 
+    with warnings.catch_warnings(record=True) as w:
+    
+        f_loss = np.sum(W[0, mask]*((KM_tau[0][mask]
+                    - KM_exp[0, mask])/np.linalg.norm(KM_exp[0, mask]))**2)
+
+        a_loss = np.sum(W[1, mask]*((KM_tau[1][mask]
+                    - KM_exp[1, mask])/np.linalg.norm(KM_exp[1, mask]))**2)
+
+
+        if len(w) > 0:
+            #print("print for warning in drift loss \n KM_tau_0 : ", KM_tau[0][mask], KM_tau[1][mask] )
+            print('exploding drift or diffusion loss for final combination\n')
+
+
+    #f_loss = np.sum(W[0, mask]*(KM_tau[0][mask] - KM_exp[0, mask])**2)
+    #a_loss = np.sum(W[1, mask]*(KM_tau[1][mask] - KM_exp[1, mask])**2)
 
     # Include PDF constraint via Kullbeck-Leibler divergence regularization
     p_hist = params['p_hist']  # Empirical PDF
@@ -638,7 +689,17 @@ def cost_parts(Xi, params):
     # Solve Fokker-Planck equation for steady-state PDF
     p_est = fp.solve(np.squeeze(f_vals), np.squeeze(a_vals))
 
-    kl = kl_divergence(p_hist, p_est, dx=fp.dx, tol=1e-6)
+
+    #added by Indra - 03/07/2022 to replace exploding pdf
+    if np.any(np.isnan(p_est)):
+        kl = max_kl
+        print('exploding KL loss for final combination \n')
+
+    else :
+        kl = kl_divergence(p_hist, p_est, dx=fp.dx, tol=1e-6)
+
+
+    #kl = kl_divergence(p_hist, p_est, dx=fp.dx, tol=1e-6)
     # Numerical integration can occasionally produce small negative values
     kl = max(0, kl)
 
@@ -732,4 +793,5 @@ def autocorr_func_1d(x, norm=True):
     if norm:
         acf /= acf[0]
 
+    return acf
     return acf
