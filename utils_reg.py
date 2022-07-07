@@ -25,6 +25,7 @@ max_fa_loss = 0.0
 flag_KL = False
 flag_fa = False
 
+
 def sindy_model(Xi, expr_list):
     return sum([Xi[i]*expr_list[i] for i in range(len(expr_list))])
 
@@ -45,13 +46,12 @@ def kl_divergence(p_in, q_in, dx=1, tol=None):
     q = q_in.copy()
     p = p_in.copy()
 
-
     with warnings.catch_warnings(record=True) as w:
         q[q < tol] = tol
         if len(w) > 0:
-            print("print for warning in KL \n q : ", q, "tol: ", tol )
+            print("print for warning in KL \n q : ", q, "tol: ", tol)
             if np.any(np.isnan(q)):
-                print("np.isnan detects correctly")		
+                print("np.isnan detects correctly")
 
     p[p < tol] = tol
     return ntrapz(p*np.log(p/q), dx)
@@ -235,23 +235,22 @@ def AFP_opt(cost, params):
     res = minimize(opt_fun, Xi0, method='Nelder-Mead',
                    options={'disp': False, 'maxfev': int(Nbr_iter_max)})
 
-
-    if params["print_cost"] :
+    if params["print_cost"]:
         if params["Loss_parts"]:
             print('%%%% Optimization time: {0} seconds,   Cost: {1}, Cost from f, a and KL: {2} %%%%'.format(
-            time() - start_time, res.fun, cost_parts(res.x, params)))
-        else :
+                time() - start_time, res.fun, cost_parts(res.x, params)))
+        else:
             print('%%%% Optimization time: {0} seconds,   Cost: {1} %%%%'.format(
                 time() - start_time, res.fun))
         print(res.message)
         print('Number of iterations : '
               + str(res.nfev) + '/' + str(int(Nbr_iter_max)))
-        if flag_KL == True :
+        if flag_KL == True:
             print('KL exploded for this combination')
 
-        if flag_fa == True :
+        if flag_fa == True:
             print('drift or diffusion exploded in adjoint solver')
-  
+
     # Return coefficients and cost function
     if np.any(is_complex):
         # Return to complex number
@@ -277,7 +276,8 @@ def SSR_loop(opt_fun, params):
     Xi0 = params['Xi0'].copy()
     Max_it = len(KMc.powers)  # Max of remaining terms in polynomes at the end
 
-    f_expr, s_expr = KMc.KM_coeffs[0].fit_fun.copy(), KMc.KM_coeffs[1].fit_fun.copy()
+    f_expr, s_expr = KMc.KM_coeffs[0].fit_fun.copy(
+    ), KMc.KM_coeffs[1].fit_fun.copy()
     m = len(Xi0)  # Number of fit coefficients
 
     Xi = np.zeros((m, m - Max_it+1))  # Output results
@@ -313,7 +313,6 @@ def SSR_loop(opt_fun, params):
             #print(s_active)
 
             print(f_expr[f_active], s_expr[s_active])
-
 
             KMc_j = fr.KM_list(KM_copy=KMc)
 
@@ -454,7 +453,6 @@ def SSR_process(q_in, q_out, opt_fun, params):
     *q_out : Queue only for putting results or progress (shared with other processes)
     """
 
-
     for active_proc, KMc, active, Xi0, proc_nbr in iter(q_in.get, 'END'):
         V = np.inf
         min_idx = -1
@@ -559,17 +557,18 @@ def cost_reg(Xi, params):
 #        V += np.sum(W[k, mask]*(KM_tau[k][mask]
 #                    - KM_exp[k, mask])**2)
 
-
     with warnings.catch_warnings(record=True) as w:
-        V += np.sum(W[0, mask]*((KM_tau[0][mask] - KM_exp[0, mask])/np.linalg.norm(KM_exp[0, mask]))**2)
+        V += np.sum(W[0, mask]*((KM_tau[0][mask] - KM_exp[0, mask]
+                                 )/np.linalg.norm(KM_exp[0, mask]))**2)
 
-        V += np.sum(W[1, mask]*((KM_tau[1][mask] - KM_exp[1, mask])/np.linalg.norm(KM_exp[1, mask]))**2)
+        V += np.sum(W[1, mask]*((KM_tau[1][mask] - KM_exp[1, mask]
+                                 )/np.linalg.norm(KM_exp[1, mask]))**2)
 
         if len(w) > 0:
             #print("print for warning in drift loss \n KM_tau_0 : ", KM_tau[0][mask], KM_tau[1][mask] )
             V = max_fa_loss
             flag_fa = True
-		
+
         else:
             if V > max_fa_loss:
                 max_fa_loss = V
@@ -584,11 +583,11 @@ def cost_reg(Xi, params):
 
         # Solve Fokker-Planck equation for steady-state PDF
         p_est = fp.solve(np.squeeze(f_vals), np.squeeze(a_vals))
-    
+
         if np.any(np.isnan(p_est)):
             kl = max_kl
             flag_KL = True
-        else :
+        else:
             kl = kl_divergence(p_hist, p_est, dx=fp.dx, tol=1e-6)
 
             if kl > max_kl:
@@ -604,8 +603,6 @@ def cost_reg(Xi, params):
     return V
 
 
-
-
 def cost_parts(Xi, params):
     """
     Parts of the total cost - drift, diffusion and KL divergence,
@@ -616,11 +613,9 @@ def cost_parts(Xi, params):
 
     global max_kl, max_fa_loss
 
-
     ### Unpack parameters ###
     W = params['W']  # Optimization weights
     track = params['track']  # Track number of optimisation iterations
-
 
     # Kramers-Moyal coefficients
     KMc = fr.KM_list(KM_copy=params['KMc'])
@@ -661,20 +656,18 @@ def cost_parts(Xi, params):
     KM_exp = np.concatenate((KMc.get_drift(), KMc.get_diff()))
 
     # loss contribution from drift and diffusion
- 
+
     with warnings.catch_warnings(record=True) as w:
-    
+
         f_loss = np.sum(W[0, mask]*((KM_tau[0][mask]
-                    - KM_exp[0, mask])/np.linalg.norm(KM_exp[0, mask]))**2)
+                                     - KM_exp[0, mask])/np.linalg.norm(KM_exp[0, mask]))**2)
 
         a_loss = np.sum(W[1, mask]*((KM_tau[1][mask]
-                    - KM_exp[1, mask])/np.linalg.norm(KM_exp[1, mask]))**2)
-
+                                     - KM_exp[1, mask])/np.linalg.norm(KM_exp[1, mask]))**2)
 
         if len(w) > 0:
             #print("print for warning in drift loss \n KM_tau_0 : ", KM_tau[0][mask], KM_tau[1][mask] )
             print('exploding drift or diffusion loss for final combination\n')
-
 
     #f_loss = np.sum(W[0, mask]*(KM_tau[0][mask] - KM_exp[0, mask])**2)
     #a_loss = np.sum(W[1, mask]*(KM_tau[1][mask] - KM_exp[1, mask])**2)
@@ -689,15 +682,13 @@ def cost_parts(Xi, params):
     # Solve Fokker-Planck equation for steady-state PDF
     p_est = fp.solve(np.squeeze(f_vals), np.squeeze(a_vals))
 
-
     #added by Indra - 03/07/2022 to replace exploding pdf
     if np.any(np.isnan(p_est)):
         kl = max_kl
         print('exploding KL loss for final combination \n')
 
-    else :
+    else:
         kl = kl_divergence(p_hist, p_est, dx=fp.dx, tol=1e-6)
-
 
     #kl = kl_divergence(p_hist, p_est, dx=fp.dx, tol=1e-6)
     # Numerical integration can occasionally produce small negative values
@@ -707,14 +698,17 @@ def cost_parts(Xi, params):
 
 
 # 1D Markov test
-def markov_test(X, lag, N=32, L=2):
+ddef markov_test(X, lag, bins, N=32):
+    #Modifications by Indra, changed input L to bins
+    #31/05 - return p123 and p123_markov
+
     # Lagged time series
     X1 = X[:-2*lag:lag]
     X2 = X[lag:-lag:lag]
     X3 = X[2*lag::lag]
 
     # Two-time joint pdfs
-    bins = np.linspace(-L, L, N+1)
+    #bins = np.linspace(-L, L, N+1)
     dx = bins[1]-bins[0]
     p12, _, _ = np.histogram2d(X1, X2, bins=[bins, bins], density=True)
     p23, _, _ = np.histogram2d(X2, X3, bins=[bins, bins], density=True)
@@ -733,7 +727,7 @@ def markov_test(X, lag, N=32, L=2):
 
     # Chi^2 value
     #return utils.ntrapz( (p123 - p123_markov)**2, [dx, dx, dx] )/(np.var(p123.flatten()) + np.var(p123_markov.flatten()))
-    return kl_divergence(p123, p123_markov, dx=[dx, dx, dx], tol=1e-6)
+    return kl_divergence(p123, p123_markov, dx=[dx, dx, dx], tol=1e-6), p123, p123_markov
 
 
 ### FAST AUTOCORRELATION FUNCTION
